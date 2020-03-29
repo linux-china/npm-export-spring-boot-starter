@@ -1,5 +1,6 @@
 package org.mvnsearch.boot.npm.export.generator;
 
+import io.swagger.v3.oas.annotations.Operation;
 import org.intellij.lang.annotations.Language;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.*;
@@ -128,6 +129,11 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         Deprecated deprecated = method.getAnnotation(Deprecated.class);
         if (deprecated != null) {
             stubMethod.setDeprecated(true);
+        }
+        //@Operation from OpenAPI
+        Operation operation = method.getAnnotation(Operation.class);
+        if (operation != null) {
+            stubMethod.setDescription(operation.description());
         }
         //@GetMapping, @PostMapping, @RequestMapping
         GetMapping getMapping = method.getAnnotation(GetMapping.class);
