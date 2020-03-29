@@ -75,7 +75,11 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
     }
 
     public String getJsReturnType() {
-        return toJsType(this.returnType);
+        if (this.jsDocTypeDef != null) {
+            return jsDocTypeDef.getName();
+        } else {
+            return toJsType(this.returnType);
+        }
     }
 
     public JSDocTypeDef getJsDocTypeDef() {
