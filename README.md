@@ -25,7 +25,21 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
 ```
 
 
+# Todo
+
+* JSDoc typedef
+
+```
+/**
+ * @typedef {Object} User
+ * @property {boolean} hasCourage
+ * @property {boolean} hasPower
+ * @property {boolean} hasWisdom
+ */
+```
+
 # References
 
 * axios: Promise based HTTP client for the browser and node.js https://github.com/axios/axios
 * Apache Commons Compress: http://commons.apache.org/proper/commons-compress/
+* JSDoc 3: https://jsdoc.app/
