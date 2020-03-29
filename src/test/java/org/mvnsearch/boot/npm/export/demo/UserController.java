@@ -49,7 +49,7 @@ public class UserController {
         return Mono.just("email: " + 1);
     }
 
-    @GetMapping("/email/{id}")
+    @GetMapping("/email2/{id}")
     @Deprecated
     public Mono<String> findEmailById(@PathVariable("id") Integer id) {
         return Mono.just("email: " + 1);
