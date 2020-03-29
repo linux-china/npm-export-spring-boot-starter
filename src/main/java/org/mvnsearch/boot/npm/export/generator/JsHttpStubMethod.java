@@ -18,6 +18,7 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
     private Class<?> returnType;
     private Class<?> bodyClass;
     private String requestContentType;
+    private boolean deprecated = false;
 
     public String getName() {
         return name;
@@ -73,6 +74,14 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
 
     public void setBodyClass(Class<?> bodyClass) {
         this.bodyClass = bodyClass;
+    }
+
+    public boolean isDeprecated() {
+        return deprecated;
+    }
+
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
     }
 
     public String getRequestContentType() {
