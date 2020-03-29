@@ -20,14 +20,15 @@ import java.util.stream.Collectors;
  *
  * @author linux_china
  */
+@SuppressWarnings("StringConcatenationInsideStringBufferAppend")
 public class ControllerJavaScriptStubGenerator {
-    private Class<?> controllerClass;
-    private String jsClassName;
-    private List<Method> requestMethods;
+    private final Class<?> controllerClass;
+    private final String jsClassName;
+    private final List<Method> requestMethods;
     /**
      * class set for typedef
      */
-    private Set<Class<?>> clazzSet = new HashSet<>();
+    private final Set<Class<?>> clazzSet = new HashSet<>();
     private String basePath;
 
     public ControllerJavaScriptStubGenerator(Class<?> controllerClass) {
@@ -40,9 +41,8 @@ public class ControllerJavaScriptStubGenerator {
             }
         }
         this.requestMethods = Arrays.stream(this.controllerClass.getMethods())
-                .filter(method -> {
-                    return AnnotationUtils.findAnnotation(method, RequestMapping.class) != null;
-                }).collect(Collectors.toList());
+                .filter(method -> AnnotationUtils.findAnnotation(method, RequestMapping.class) != null)
+                .collect(Collectors.toList());
         this.jsClassName = controllerClass.getSimpleName();
     }
 
@@ -67,7 +67,7 @@ public class ControllerJavaScriptStubGenerator {
                 "                .replace('{' + name + '}', pathVariables[name])\n" +
                 "    }\n" +
                 "    return newUri;\n" +
-                "}\n";
+                "}\n\n";
         @Language(value = "JavaScript", suffix = "}")
         String classDeclare = "class XxxxController {\n" +
                 "    constructor() {\n" +
@@ -111,7 +111,7 @@ public class ControllerJavaScriptStubGenerator {
         builder.append(global);
         builder.append(classDeclare.replaceAll("XxxxController", jsClassName));
         for (Method requestMethod : requestMethods) {
-            builder.append(toJsCode(generateMethodStub(requestMethod)) + "\n");
+            builder.append(toJsCode(generateMethodStub(requestMethod), "    ") + "\n");
         }
         builder.append("}\n\n");
         builder.append("module.exports = new UserController();\n");
@@ -217,18 +217,18 @@ public class ControllerJavaScriptStubGenerator {
         return inferredClass;
     }
 
-    public String toJsCode(JsHttpStubMethod stubMethod) {
+    public String toJsCode(JsHttpStubMethod stubMethod, String indent) {
         StringBuilder builder = new StringBuilder();
-        builder.append("/**\n");
-        builder.append("*\n");
+        builder.append(indent).append("/**\n");
+        builder.append(indent).append("*\n");
         for (JsParam param : stubMethod.getParams()) {
             if (param.isFromRequestSide()) {
-                builder.append("* @param {" + param.getJsType() + "} "+param.getName()+"\n");
+                builder.append(indent).append("* @param {" + param.getJsType() + "} " + param.getName() + "\n");
             }
         }
-        builder.append("* @return {Promise<" + stubMethod.getJsReturnType() + ">}\n");
-        builder.append("*/\n");
-        builder.append(stubMethod.getName() + "(");
+        builder.append(indent).append("* @return {Promise<" + stubMethod.getJsReturnType() + ">}\n");
+        builder.append(indent).append("*/\n");
+        builder.append(indent).append(stubMethod.getName() + "(");
         if (!stubMethod.getParams().isEmpty()) {
             String paramsDeclare = stubMethod.getParams().stream()
                     .filter(JsParam::isFromRequestSide)
@@ -236,39 +236,37 @@ public class ControllerJavaScriptStubGenerator {
                     .collect(Collectors.joining(", "));
             builder.append(paramsDeclare);
         }
-        builder.append("){\n");
-        builder.append("  let config = {\n");
+        builder.append(indent).append("){\n");
+        builder.append(indent).append("  let config = {\n");
         if (stubMethod.hasPathVariable()) {
-            builder.append("    url: this.baseUrl + formatUri('" + stubMethod.getUri() + "'," + formatPathVariables(stubMethod) + "),\n");
+            builder.append(indent).append("    url: this.baseUrl + formatUri('" + stubMethod.getUri() + "'," + formatPathVariables(stubMethod) + "),\n");
         } else {
-            builder.append("    url: this.baseUrl + '" + stubMethod.getUri() + "',\n");
+            builder.append(indent).append("    url: this.baseUrl + '" + stubMethod.getUri() + "',\n");
         }
-        builder.append("    headers: " + formatHttpHeaders(stubMethod) + ",\n");
+        builder.append(indent).append("    headers: " + formatHttpHeaders(stubMethod) + ",\n");
         if (stubMethod.isPlainBody()) {
-            builder.append("     data: " + stubMethod.getRequestBodyParam().getName() + ",\n");
+            builder.append(indent).append("     data: " + stubMethod.getRequestBodyParam().getName() + ",\n");
         } else {
             if (stubMethod.hasRequestParam()) {
                 if (stubMethod.getMethod().equals(RequestMethod.GET)) {
-                    builder.append("    params: " + formatRequesterParams(stubMethod) + ",\n");
+                    builder.append(indent).append("    params: " + formatRequesterParams(stubMethod) + ",\n");
                 } else {
-                    builder.append("    data: " + formatRequesterParams(stubMethod) + ",\n");
+                    builder.append(indent).append("    data: " + formatRequesterParams(stubMethod) + ",\n");
                 }
             }
         }
-        builder.append("    method: '" + stubMethod.getMethod().name().toLowerCase() + "'};\n");
-        builder.append("  if(this.jwtToken != null) {config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }\n");
-        builder.append("  if(this.configFilter != null) {config = this.configFilter(config);}\n");
-        builder.append("  return axios(config).then(response => {return response.data;});\n");
-        builder.append("}\n");
+        builder.append(indent).append("    method: '" + stubMethod.getMethod().name().toLowerCase() + "'};\n");
+        builder.append(indent).append("  if(this.jwtToken != null) {config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }\n");
+        builder.append(indent).append("  if(this.configFilter != null) {config = this.configFilter(config);}\n");
+        builder.append(indent).append("  return axios(config).then(response => {return response.data;});\n");
+        builder.append(indent).append("}\n");
         return builder.toString();
     }
 
     public String formatPathVariables(JsHttpStubMethod stubMethod) {
         return "{" + stubMethod.getParams().stream()
                 .filter(param -> param.getPathVariableName() != null)
-                .map(param -> {
-                    return "\"" + param.getPathVariableName() + "\": " + param.getName();
-                })
+                .map(param -> "\"" + param.getPathVariableName() + "\": " + param.getName())
                 .collect(Collectors.joining(", ")) + "}";
     }
 
@@ -281,9 +279,7 @@ public class ControllerJavaScriptStubGenerator {
         if (stubMethod.hasHttpHeader()) {
             builder.append(",").append(stubMethod.getParams().stream()
                     .filter(param -> param.getPathVariableName() != null)
-                    .map(param -> {
-                        return "\"" + param.getPathVariableName() + "\": " + param.getName();
-                    })
+                    .map(param -> "\"" + param.getPathVariableName() + "\": " + param.getName())
                     .collect(Collectors.joining(", ")));
         }
         builder.append("}");
@@ -293,9 +289,7 @@ public class ControllerJavaScriptStubGenerator {
     public String formatRequesterParams(JsHttpStubMethod stubMethod) {
         return "{" + stubMethod.getParams().stream()
                 .filter(param -> param.getPathVariableName() != null)
-                .map(param -> {
-                    return "\"" + param.getPathVariableName() + "\": " + param.getName();
-                })
+                .map(param -> "\"" + param.getPathVariableName() + "\": " + param.getName())
                 .collect(Collectors.joining(", ")) + "}";
     }
 
