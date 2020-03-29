@@ -14,6 +14,7 @@ import java.util.Date;
 @RestController
 @RequestMapping("/user")
 @NpmPackage(name = "@xxx/UserController")
+@CrossOrigin("*")
 public class UserController {
 
     @GetMapping("/nick/{id}")
