@@ -241,7 +241,12 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
     public String toJsCode(JsHttpStubMethod stubMethod, String indent) {
         StringBuilder builder = new StringBuilder();
         builder.append(indent).append("/**\n");
-        builder.append(indent).append("*\n");
+        //description
+        if (stubMethod.getDescription() != null && !stubMethod.getDescription().isEmpty()) {
+            builder.append(indent).append("* " + stubMethod.getDescription() + "\n");
+        } else {
+            builder.append(indent).append("*\n");
+        }
         //@deprecated
         if (stubMethod.isDeprecated()) {
             builder.append(indent).append("* @deprecated\n");
