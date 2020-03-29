@@ -1,6 +1,8 @@
 package org.mvnsearch.boot.npm.export.generator;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.intellij.lang.annotations.Language;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
     private final Class<?> controllerClass;
     private final String jsClassName;
     private final List<Method> requestMethods;
+    private final List<JsHttpStubMethod> jsHttpStubMethods;
     /**
      * class set for typedef
      */
@@ -38,6 +41,9 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         }
         this.requestMethods = Arrays.stream(this.controllerClass.getMethods())
                 .filter(method -> AnnotationUtils.findAnnotation(method, RequestMapping.class) != null)
+                .collect(Collectors.toList());
+        this.jsHttpStubMethods = this.requestMethods.stream()
+                .map(this::generateMethodStub)
                 .collect(Collectors.toList());
         this.jsClassName = controllerClass.getSimpleName();
     }
@@ -113,8 +119,8 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         builder.append(global);
         String version = new SimpleDateFormat("yyyy.MM.dd").format(new Date());
         builder.append(classDeclare.replaceAll("XxxxController", jsClassName).replace("$version", version));
-        for (Method requestMethod : requestMethods) {
-            builder.append(toJsCode(generateMethodStub(requestMethod), "    ") + "\n");
+        for (JsHttpStubMethod jsHttpStubMethod : jsHttpStubMethods) {
+            builder.append(toJsCode(jsHttpStubMethod, "    ") + "\n");
         }
         builder.append("}\n\n");
         builder.append("module.exports = new UserController();\n\n");
@@ -214,7 +220,21 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         //return type
         Type genericReturnType = method.getGenericReturnType();
         stubMethod.setReturnType(parseInferredClass(genericReturnType));
-
+        //@ApiResponse
+        ApiResponse apiResponse = method.getAnnotation(ApiResponse.class);
+        if (apiResponse != null && apiResponse.content().length > 0) {
+            Schema schema = apiResponse.content()[0].schema();
+            //java class as response
+            if (schema.implementation() != Void.class) {
+                stubMethod.setReturnType(schema.implementation());
+            } else if (schema.requiredProperties().length > 0) {
+                JSDocTypeDef jsDocTypeDef = new JSDocTypeDef(schema.name());
+                for (String property : schema.requiredProperties()) {
+                    jsDocTypeDef.addProperty(property);
+                }
+                stubMethod.setJsDocTypeDef(jsDocTypeDef);
+            }
+        }
         return stubMethod;
     }
 
@@ -266,7 +286,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
             }
         }
         String jsReturnType = stubMethod.getJsReturnType();
-        if (jsReturnType.contains("_")) {
+        if (stubMethod.getJsDocTypeDef() == null && jsReturnType.contains("_")) {
             this.typeDefMap.put(stubMethod.getReturnType(), jsReturnType);
         }
         builder.append(indent).append("* @return {Promise<" + jsReturnType + ">}\n");
@@ -356,6 +376,19 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
             builder.append("* @typedef {Object} " + entry.getValue() + "\n");
             for (Field field : clazz.getDeclaredFields()) {
                 builder.append("* @property {" + toJsType(field.getType()) + "} " + field.getName() + "\n");
+            }
+            builder.append("*/\n");
+        }
+        //@typeDef
+        Map<String, JSDocTypeDef> typeDefMap = jsHttpStubMethods.stream()
+                .map(JsHttpStubMethod::getJsDocTypeDef)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(JSDocTypeDef::getName, jsDocTypeDef -> jsDocTypeDef, (a, b) -> b));
+        for (JSDocTypeDef jsDocTypeDef : typeDefMap.values()) {
+            builder.append("/**\n");
+            builder.append("* @typedef {Object} " + jsDocTypeDef.getName() + "\n");
+            for (String property : jsDocTypeDef.getProperties()) {
+                builder.append("* @property " + property + "\n");
             }
             builder.append("*/\n");
         }
