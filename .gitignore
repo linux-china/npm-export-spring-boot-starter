@@ -134,3 +134,4 @@ buildNumber.properties
 temp/
 **/node_modules/
 package-lock.json
+yarn.lock
