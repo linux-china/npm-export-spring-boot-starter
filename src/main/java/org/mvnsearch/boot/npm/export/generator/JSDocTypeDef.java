@@ -13,7 +13,7 @@ public class JSDocTypeDef {
     private List<String> properties = new ArrayList<>();
 
     public JSDocTypeDef(String name) {
-
+        this.name = name;
     }
 
     public String getName() {
