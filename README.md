@@ -3,6 +3,12 @@ npm-export-spring-boot-starter
 
 A Spring Boot starter, generates npm package for Node.js and Browser to call Spring Boot REST API.
 
+# Features
+
+* Generate axios stub to call remote REST API
+* JSDoc support for code completion
+* OpenAPI support
+
 # How to use?
 
 * Include dependency in your package.json
@@ -24,22 +30,33 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
 })()
 ```
 
+### OpenAPI Integration
+
+* @Operation
+* @ApiResponse
+
+```
+    @GetMapping("/user/schemaRaw/{id}")
+    @ApiResponse(content = @Content(schema = @Schema(name = "UserExtra", requiredProperties = {"{boolean} first", "{boolean} second"})))
+    public Mono<ByteBuffer> findUserByIdSchemaRaw(@PathVariable("id") Integer id) {
+        return Mono.empty();
+    }
+
+    @GetMapping("/user/schemaBean/{id}")
+    @ApiResponse(content = @Content(schema = @Schema(implementation = User.class)))
+    public Mono<ByteBuffer> findUserByIdSchemaBean(@PathVariable("id") Integer id) {
+        return Mono.empty();
+    }
+```
+
 
 # Todo
 
-* JSDoc typedef
-
-```
-/**
- * @typedef {Object} User
- * @property {boolean} hasCourage
- * @property {boolean} hasPower
- * @property {boolean} hasWisdom
- */
-```
+* JSDoc typedef:  类名为全称，由于不支持"."，调整为下划线
 
 # References
 
 * axios: Promise based HTTP client for the browser and node.js https://github.com/axios/axios
 * Apache Commons Compress: http://commons.apache.org/proper/commons-compress/
 * JSDoc 3: https://jsdoc.app/
+* SpringDoc OpenAPI: https://springdoc.org/
