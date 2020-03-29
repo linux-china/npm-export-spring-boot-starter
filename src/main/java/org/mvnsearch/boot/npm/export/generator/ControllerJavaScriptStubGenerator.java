@@ -10,7 +10,9 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -22,6 +24,10 @@ public class ControllerJavaScriptStubGenerator {
     private Class<?> controllerClass;
     private String jsClassName;
     private List<Method> requestMethods;
+    /**
+     * class set for typedef
+     */
+    private Set<Class<?>> clazzSet = new HashSet<>();
     private String basePath;
 
     public ControllerJavaScriptStubGenerator(Class<?> controllerClass) {
