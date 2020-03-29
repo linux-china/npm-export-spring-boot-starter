@@ -110,7 +110,7 @@ public class ControllerJavaScriptStubGenerator {
                 "    setConfigFilter(filter) {\n" +
                 "        this.configFilter = filter;\n" +
                 "        return this;\n" +
-                "    }\n";
+                "    }\n\n";
         StringBuilder builder = new StringBuilder();
         builder.append(global);
         String version = new SimpleDateFormat("yyyy.MM.dd").format(new Date());
@@ -266,7 +266,7 @@ public class ControllerJavaScriptStubGenerator {
                     .collect(Collectors.joining(", "));
             builder.append(paramsDeclare);
         }
-        builder.append("){\n");
+        builder.append(") {\n");
         builder.append(indent).append("  let config = {\n");
         if (stubMethod.hasPathVariable()) {
             builder.append(indent).append("    url: this.baseUrl + formatUri('" + stubMethod.getUri() + "'," + formatPathVariables(stubMethod) + "),\n");
@@ -285,9 +285,10 @@ public class ControllerJavaScriptStubGenerator {
                 }
             }
         }
-        builder.append(indent).append("    method: '" + stubMethod.getMethod().name().toLowerCase() + "'};\n");
-        builder.append(indent).append("  if(this.jwtToken != null) {config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }\n");
-        builder.append(indent).append("  if(this.configFilter != null) {config = this.configFilter(config);}\n");
+        builder.append(indent).append("    method: '" + stubMethod.getMethod().name().toLowerCase() + "'\n");
+        builder.append(indent).append("  };\n");
+        builder.append(indent).append("  if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }\n");
+        builder.append(indent).append("  if (this.configFilter != null) { config = this.configFilter(config); }\n");
         Class<?> returnType = stubMethod.getReturnType();
         if (returnType.isAssignableFrom(Integer.class) || returnType.isAssignableFrom(int.class)) {
             builder.append(indent).append("  return axios(config).then(response => {return parseInt(response.data);});\n");
