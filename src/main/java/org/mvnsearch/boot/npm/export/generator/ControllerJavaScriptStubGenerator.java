@@ -150,10 +150,10 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         }
         stubMethod.setMethod(requestMethod == null ? RequestMethod.POST : requestMethod);
         if (paths != null && paths.length > 0) {
-            stubMethod.setUri(paths[0]);
+            stubMethod.setPath(paths[0]);
         }
         if (basePath != null && !basePath.isEmpty()) {
-            stubMethod.setUri(basePath + stubMethod.getUri());
+            stubMethod.setPath(basePath + stubMethod.getPath());
         }
         //parameters
         Parameter[] parameters = method.getParameters();
@@ -271,9 +271,9 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         builder.append(") {\n");
         builder.append(indent).append("  let config = {\n");
         if (stubMethod.hasPathVariable()) {
-            builder.append(indent).append("    url: this.baseUrl + formatUri('" + stubMethod.getUri() + "'," + formatPathVariables(stubMethod) + "),\n");
+            builder.append(indent).append("    url: this.baseUrl + formatUri('" + stubMethod.getPath() + "'," + formatPathVariables(stubMethod) + "),\n");
         } else {
-            builder.append(indent).append("    url: this.baseUrl + '" + stubMethod.getUri() + "',\n");
+            builder.append(indent).append("    url: this.baseUrl + '" + stubMethod.getPath() + "',\n");
         }
         builder.append(indent).append("    headers: " + formatHttpHeaders(stubMethod) + ",\n");
         if (stubMethod.isPlainBody()) {
