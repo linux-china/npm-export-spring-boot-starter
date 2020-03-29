@@ -11,7 +11,7 @@ A Spring Boot starter, generates npm package for Node.js and Browser to call Spr
 
 # How to use?
 
-* Include dependency in your package.json
+* Include dependency in your package.json and run "yarn install"
 
 ```
  "dependencies": {
@@ -19,7 +19,7 @@ A Spring Boot starter, generates npm package for Node.js and Browser to call Spr
   }
 ```
 
-* Call service api in your JS code: 
+* Call service api in your JS code:
 
 ```
 const userController = require("@UserService/UserController").setBaseUrl("http://localhost:8080");
@@ -52,7 +52,7 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
 
 # Todo
 
-* JSDoc typedef:  类名为全称，由于不支持"."，调整为下划线
+* npm ERR! code EINTEGRITY
 
 # References
 
