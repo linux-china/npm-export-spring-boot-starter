@@ -28,6 +28,7 @@ public interface JavaToJsTypeConverter {
             return "number";
         } else if (type.isAssignableFrom(List.class)
                 || type.isAssignableFrom(Set.class)
+                || type.isAssignableFrom(Collection.class)
                 || type.isArray()) {
             return "Array";
         } else if (type.isAssignableFrom(Map.class)) {
