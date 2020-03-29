@@ -4,10 +4,7 @@ import org.intellij.lang.annotations.Language;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,14 +16,14 @@ import java.util.stream.Collectors;
  * @author linux_china
  */
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
-public class ControllerJavaScriptStubGenerator {
+public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter {
     private final Class<?> controllerClass;
     private final String jsClassName;
     private final List<Method> requestMethods;
     /**
      * class set for typedef
      */
-    private final Set<Class<?>> clazzSet = new HashSet<>();
+    private final Map<Class<?>, String> typeDefMap = new HashMap<>();
     private String basePath;
 
     public ControllerJavaScriptStubGenerator(Class<?> controllerClass) {
@@ -119,7 +116,8 @@ public class ControllerJavaScriptStubGenerator {
             builder.append(toJsCode(generateMethodStub(requestMethod), "    ") + "\n");
         }
         builder.append("}\n\n");
-        builder.append("module.exports = new UserController();\n");
+        builder.append("module.exports = new UserController();\n\n");
+        builder.append(typedefs());
         return builder.toString();
     }
 
@@ -256,7 +254,11 @@ public class ControllerJavaScriptStubGenerator {
                 }
             }
         }
-        builder.append(indent).append("* @return {Promise<" + stubMethod.getJsReturnType() + ">}\n");
+        String jsReturnType = stubMethod.getJsReturnType();
+        if (jsReturnType.contains("_")) {
+            this.typeDefMap.put(stubMethod.getReturnType(), jsReturnType);
+        }
+        builder.append(indent).append("* @return {Promise<" + jsReturnType + ">}\n");
         builder.append(indent).append("*/\n");
         builder.append(indent).append(stubMethod.getName() + "(");
         if (!stubMethod.getParams().isEmpty()) {
@@ -332,6 +334,21 @@ public class ControllerJavaScriptStubGenerator {
                 .filter(param -> param.getRequestParamName() != null)
                 .map(param -> "\"" + param.getRequestParamName() + "\": " + param.getName())
                 .collect(Collectors.joining(", ")) + "}";
+    }
+
+    public String typedefs() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("//================ JSDoc typedef ========================//\n");
+        for (Map.Entry<Class<?>, String> entry : typeDefMap.entrySet()) {
+            Class<?> clazz = entry.getKey();
+            builder.append("/**\n");
+            builder.append("* @typedef {Object} " + entry.getValue() + "\n");
+            for (Field field : clazz.getDeclaredFields()) {
+                builder.append("* @property {" + toJsType(field.getType()) + "} " + field.getName() + "\n");
+            }
+            builder.append("*/\n");
+        }
+        return builder.toString();
     }
 
 }
