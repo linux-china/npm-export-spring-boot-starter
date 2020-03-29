@@ -9,11 +9,12 @@ import java.util.*;
  * @author linux_china
  */
 public interface JavaToJsTypeConverter {
-    static List<Class<?>> numberClazzList = Arrays.asList(Integer.class, int.class,
+    List<Class<?>> numberClazzList = Arrays.asList(Integer.class, int.class,
             Long.class, long.class,
             Float.class, float.class,
             Double.class, double.class,
             Byte.class, byte.class);
+    List<String> jsTypes = Arrays.asList("string", "boolean", "number", "Array", "Object");
 
     default String toJsType(Class<?> type) {
         if (type.isAssignableFrom(String.class)
@@ -22,7 +23,7 @@ public interface JavaToJsTypeConverter {
                 || type.isAssignableFrom(UUID.class)) {
             return "string";
         } else if (type.isAssignableFrom(Boolean.class) || type.isAssignableFrom(boolean.class)) {
-            return "bool";
+            return "boolean";
         } else if (numberClazzList.contains(type)) {
             return "number";
         } else if (type.isAssignableFrom(List.class)
