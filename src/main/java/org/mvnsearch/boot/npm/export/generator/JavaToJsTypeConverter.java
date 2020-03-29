@@ -33,7 +33,7 @@ public interface JavaToJsTypeConverter {
         } else if (type.isAssignableFrom(Map.class)) {
             return "Object";
         } else {
-            return type.getSimpleName();
+            return type.getCanonicalName().replaceAll("\\.", "_");
         }
     }
 
