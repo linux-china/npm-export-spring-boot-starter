@@ -14,16 +14,18 @@ public class PackageJsonGenerator {
     @Language("JSON")
     private String templateText = "{\n" +
             "  \"name\": \"$packageName\",\n" +
-            "  \"version\": \"1.0.0\",\n" +
+            "  \"version\": \"$version\",\n" +
             "  \"main\": \"index.js\",\n" +
+            "  \"description\": \"$description\",\n" +
             "  \"dependencies\": {\n" +
             "    \"axios\": \"^0.19.2\"\n" +
             "  }\n" +
             "}\n";
     private Map<String, String> context = new HashMap<>();
 
-    public PackageJsonGenerator() {
-
+    public PackageJsonGenerator(String packageName, String version) {
+        this.context.put("packageName", packageName);
+        this.context.put("version", version);
     }
 
     public PackageJsonGenerator addContext(String key, String value) {
