@@ -223,7 +223,7 @@ public class ControllerJavaScriptStubGenerator {
         builder.append("*\n");
         for (JsParam param : stubMethod.getParams()) {
             if (param.isFromRequestSide()) {
-                builder.append("* @param {" + param.getJsType() + "}\n");
+                builder.append("* @param {" + param.getJsType() + "} "+param.getName()+"\n");
             }
         }
         builder.append("* @return {Promise<" + stubMethod.getJsReturnType() + ">}\n");
