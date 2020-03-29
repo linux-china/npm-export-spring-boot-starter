@@ -36,4 +36,17 @@ public class UserController {
     public Integer save(@RequestBody User user) {
         return 1;
     }
+
+    @GetMapping("/email/{id}")
+    public Mono<String> findEmailByIdAndNick(@PathVariable("id") Integer id,
+                                             @RequestParam(required = false) String nick) {
+        return Mono.just("email: " + 1);
+    }
+
+    @GetMapping("/email/{id}")
+    @Deprecated
+    public Mono<String> findEmailById(@PathVariable("id") Integer id) {
+        return Mono.just("email: " + 1);
+    }
+
 }
