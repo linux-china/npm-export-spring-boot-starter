@@ -9,9 +9,10 @@
     "watch": "webpack --watch",
     "start": "webpack-dev-server --open",
     "build": "webpack",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist package-lock.json yarn.lock node_modules "
   },
   "dependencies": {
+    "@UserService/UserController": "http://localhost:8080/npm/@UserService/UserController",
     "axios": "^0.19.2"
   },
   "devDependencies": {
