@@ -121,6 +121,12 @@ public class ControllerJavaScriptStubGenerator {
     public JsHttpStubMethod generateMethodStub(Method method) {
         JsHttpStubMethod stubMethod = new JsHttpStubMethod();
         stubMethod.setName(method.getName());
+        //@deprecated
+        Deprecated deprecated = method.getAnnotation(Deprecated.class);
+        if (deprecated != null) {
+            stubMethod.setDeprecated(true);
+        }
+        //@GetMapping, @PostMapping, @RequestMapping
         GetMapping getMapping = method.getAnnotation(GetMapping.class);
         PostMapping postMapping = method.getAnnotation(PostMapping.class);
         RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
@@ -146,6 +152,7 @@ public class ControllerJavaScriptStubGenerator {
         if (basePath != null && !basePath.isEmpty()) {
             stubMethod.setUri(basePath + stubMethod.getUri());
         }
+        //parameters
         Parameter[] parameters = method.getParameters();
         if (parameters.length > 0) {
             for (Parameter parameter : parameters) {
@@ -159,19 +166,24 @@ public class ControllerJavaScriptStubGenerator {
                         value = jsParam.getName();
                     }
                     jsParam.setPathVariableName(value);
+                    jsParam.setRequired(pathVariable.required());
                 }
                 RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
                 if (requestParam != null) {
                     String value = requestParam.value();
                     if (value.isEmpty()) {
-                        value = jsParam.getName();
+                        value = parameter.getName();
                     }
+                    jsParam.setDefaultValue(requestParam.defaultValue());
                     jsParam.setRequestParamName(value);
+                    jsParam.setRequired(requestParam.required());
                 }
                 RequestHeader requestHeader = parameter.getAnnotation(RequestHeader.class);
                 if (requestHeader != null) {
                     String value = requestHeader.value();
                     jsParam.setHttpHeaderName(value);
+                    jsParam.setDefaultValue(requestHeader.defaultValue());
+                    jsParam.setRequired(requestHeader.required());
                 }
                 RequestBody requestBody = parameter.getAnnotation(RequestBody.class);
                 if (requestBody != null) {
@@ -185,12 +197,12 @@ public class ControllerJavaScriptStubGenerator {
                     } else {
                         stubMethod.setRequestContentType("application/json");
                     }
+                    jsParam.setRequired(requestBody.required());
                 }
                 stubMethod.addParam(jsParam);
             }
         }
         //return type
-
         Type genericReturnType = method.getGenericReturnType();
         stubMethod.setReturnType(parseInferredClass(genericReturnType));
 
@@ -221,9 +233,22 @@ public class ControllerJavaScriptStubGenerator {
         StringBuilder builder = new StringBuilder();
         builder.append(indent).append("/**\n");
         builder.append(indent).append("*\n");
+        //@deprecated
+        if (stubMethod.isDeprecated()) {
+            builder.append(indent).append("* @deprecated\n");
+        }
         for (JsParam param : stubMethod.getParams()) {
             if (param.isFromRequestSide()) {
-                builder.append(indent).append("* @param {" + param.getJsType() + "} " + param.getName() + "\n");
+                if (param.isRequired()) {
+                    builder.append(indent).append("* @param {" + param.getJsType() + "} " + param.getName() + "\n");
+                } else {
+                    //default value
+                    if (param.getDefaultValue() != null && !param.getDefaultValue().isEmpty() && !param.getDefaultValue().equals(ValueConstants.DEFAULT_NONE)) {
+                        builder.append(indent).append("* @param {" + param.getJsType() + "} [" + param.getName() + "=" + param.getDefaultValue() + "]\n");
+                    } else {  //optional
+                        builder.append(indent).append("* @param {" + param.getJsType() + "} [" + param.getName() + "]\n");
+                    }
+                }
             }
         }
         builder.append(indent).append("* @return {Promise<" + stubMethod.getJsReturnType() + ">}\n");
@@ -258,7 +283,17 @@ public class ControllerJavaScriptStubGenerator {
         builder.append(indent).append("    method: '" + stubMethod.getMethod().name().toLowerCase() + "'};\n");
         builder.append(indent).append("  if(this.jwtToken != null) {config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }\n");
         builder.append(indent).append("  if(this.configFilter != null) {config = this.configFilter(config);}\n");
-        builder.append(indent).append("  return axios(config).then(response => {return response.data;});\n");
+        Class<?> returnType = stubMethod.getReturnType();
+        if (returnType.isAssignableFrom(Integer.class) || returnType.isAssignableFrom(int.class)) {
+            builder.append(indent).append("  return axios(config).then(response => {return parseInt(response.data);});\n");
+        } else if (returnType.isAssignableFrom(Float.class)
+                || returnType.isAssignableFrom(float.class)
+                || returnType.isAssignableFrom(Double.class)
+                || returnType.isAssignableFrom(double.class)) {
+            builder.append(indent).append("  return axios(config).then(response => {return parseFloat(response.data);});\n");
+        } else {
+            builder.append(indent).append("  return axios(config).then(response => {return response.data;});\n");
+        }
         builder.append(indent).append("}\n");
         return builder.toString();
     }
@@ -278,8 +313,8 @@ public class ControllerJavaScriptStubGenerator {
         }
         if (stubMethod.hasHttpHeader()) {
             builder.append(",").append(stubMethod.getParams().stream()
-                    .filter(param -> param.getPathVariableName() != null)
-                    .map(param -> "\"" + param.getPathVariableName() + "\": " + param.getName())
+                    .filter(param -> param.getHttpHeaderName() != null)
+                    .map(param -> "\"" + param.getHttpHeaderName() + "\": " + param.getName())
                     .collect(Collectors.joining(", ")));
         }
         builder.append("}");
@@ -288,8 +323,8 @@ public class ControllerJavaScriptStubGenerator {
 
     public String formatRequesterParams(JsHttpStubMethod stubMethod) {
         return "{" + stubMethod.getParams().stream()
-                .filter(param -> param.getPathVariableName() != null)
-                .map(param -> "\"" + param.getPathVariableName() + "\": " + param.getName())
+                .filter(param -> param.getRequestParamName() != null)
+                .map(param -> "\"" + param.getRequestParamName() + "\": " + param.getName())
                 .collect(Collectors.joining(", ")) + "}";
     }
 
