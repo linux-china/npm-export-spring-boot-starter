@@ -17,6 +17,7 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
     private RequestMethod method;
     private List<JsParam> params = new ArrayList<>();
     private Class<?> returnType;
+    private JSDocTypeDef jsDocTypeDef;
     private Class<?> bodyClass;
     private String requestContentType;
     private boolean deprecated = false;
@@ -75,6 +76,14 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
 
     public String getJsReturnType() {
         return toJsType(this.returnType);
+    }
+
+    public JSDocTypeDef getJsDocTypeDef() {
+        return jsDocTypeDef;
+    }
+
+    public void setJsDocTypeDef(JSDocTypeDef jsDocTypeDef) {
+        this.jsDocTypeDef = jsDocTypeDef;
     }
 
     public Class<?> getBodyClass() {
