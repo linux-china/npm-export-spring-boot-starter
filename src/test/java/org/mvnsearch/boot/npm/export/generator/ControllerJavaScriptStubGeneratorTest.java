@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets;
  * @author linux_china
  */
 public class ControllerJavaScriptStubGeneratorTest {
-    private ControllerJavaScriptStubGenerator generator = new ControllerJavaScriptStubGenerator(UserController.class);
+    private final ControllerJavaScriptStubGenerator generator = new ControllerJavaScriptStubGenerator(UserController.class);
 
     @Test
     public void testParserController() {
