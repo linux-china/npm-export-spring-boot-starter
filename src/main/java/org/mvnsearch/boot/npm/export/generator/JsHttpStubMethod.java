@@ -12,6 +12,7 @@ import java.util.List;
  */
 public class JsHttpStubMethod implements JavaToJsTypeConverter {
     private String name;
+    private String description;
     private String path;
     private RequestMethod method;
     private List<JsParam> params = new ArrayList<>();
@@ -26,6 +27,14 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public String getPath() {
