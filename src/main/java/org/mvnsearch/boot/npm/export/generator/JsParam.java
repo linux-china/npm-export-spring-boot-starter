@@ -8,6 +8,8 @@ package org.mvnsearch.boot.npm.export.generator;
 public class JsParam implements JavaToJsTypeConverter {
     private String name;
     private Class<?> type;
+    private String defaultValue;
+    private boolean required;
     private String pathVariableName;
     private String requestParamName;
     private String httpHeaderName;
@@ -35,6 +37,22 @@ public class JsParam implements JavaToJsTypeConverter {
 
     public void setType(Class<?> type) {
         this.type = type;
+    }
+
+    public String getDefaultValue() {
+        return defaultValue;
+    }
+
+    public void setDefaultValue(String defaultValue) {
+        this.defaultValue = defaultValue;
+    }
+
+    public boolean isRequired() {
+        return required;
+    }
+
+    public void setRequired(boolean required) {
+        this.required = required;
     }
 
     public String getJsType() {
