@@ -113,7 +113,8 @@ public class ControllerJavaScriptStubGenerator {
                 "    }\n";
         StringBuilder builder = new StringBuilder();
         builder.append(global);
-        builder.append(classDeclare.replaceAll("XxxxController", jsClassName).replace("$version", new SimpleDateFormat("yyyy.MM.dd").format(new Date())));
+        String version = new SimpleDateFormat("yyyy.MM.dd").format(new Date());
+        builder.append(classDeclare.replaceAll("XxxxController", jsClassName).replace("$version", version));
         for (Method requestMethod : requestMethods) {
             builder.append(toJsCode(generateMethodStub(requestMethod), "    ") + "\n");
         }
