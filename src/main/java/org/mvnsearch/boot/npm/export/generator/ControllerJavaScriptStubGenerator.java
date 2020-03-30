@@ -24,9 +24,13 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
     private final List<Method> requestMethods;
     private final List<JsHttpStubMethod> jsHttpStubMethods;
     /**
-     * class set for typedef
+     * javabean for typeDef from @Schema implementation
      */
-    private final Map<Class<?>, String> typeDefMap = new HashMap<>();
+    private final Map<Class<?>, String> javaBeanTypeDefMap = new HashMap<>();
+    /**
+     * customized typedef from @Schema properties
+     */
+    private Map<String, JSDocTypeDef> customizedTypeDefMap = new HashMap<>();
     private String basePath;
 
     public ControllerJavaScriptStubGenerator(Class<?> controllerClass) {
@@ -295,11 +299,15 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
                         builder.append(indent).append("* @param {" + param.getJsType() + "} [" + param.getName() + "]\n");
                     }
                 }
+                JSDocTypeDef jsDocTypeDef = param.getJsDocTypeDef();
+                if (jsDocTypeDef != null) {
+                    this.customizedTypeDefMap.put(jsDocTypeDef.getName(), jsDocTypeDef);
+                }
             }
         }
         String jsReturnType = stubMethod.getJsReturnType();
         if (stubMethod.getJsDocTypeDef() == null && jsReturnType.contains("_")) {
-            this.typeDefMap.put(stubMethod.getReturnType(), jsReturnType);
+            this.javaBeanTypeDefMap.put(stubMethod.getReturnType(), jsReturnType);
         }
         builder.append(indent).append("* @return {Promise<" + jsReturnType + ">}\n");
         builder.append(indent).append("*/\n");
@@ -382,7 +390,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
     public String typedefs() {
         StringBuilder builder = new StringBuilder();
         builder.append("//================ JSDoc typedef ========================//\n");
-        for (Map.Entry<Class<?>, String> entry : typeDefMap.entrySet()) {
+        for (Map.Entry<Class<?>, String> entry : javaBeanTypeDefMap.entrySet()) {
             Class<?> clazz = entry.getKey();
             builder.append("/**\n");
             builder.append("* @typedef {Object} " + entry.getValue() + "\n");
@@ -391,12 +399,14 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
             }
             builder.append("*/\n");
         }
-        //@typeDef
-        Map<String, JSDocTypeDef> typeDefMap = jsHttpStubMethods.stream()
+        //@typeDef for return type and parameter type
+        Map<String, JSDocTypeDef> allTypeDefMap = new HashMap<>(this.customizedTypeDefMap);
+        Map<String, JSDocTypeDef> typeDefForReturnTypeMap = jsHttpStubMethods.stream()
                 .map(JsHttpStubMethod::getJsDocTypeDef)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(JSDocTypeDef::getName, jsDocTypeDef -> jsDocTypeDef, (a, b) -> b));
-        for (JSDocTypeDef jsDocTypeDef : typeDefMap.values()) {
+        allTypeDefMap.putAll(typeDefForReturnTypeMap);
+        for (JSDocTypeDef jsDocTypeDef : allTypeDefMap.values()) {
             builder.append("/**\n");
             builder.append("* @typedef {Object} " + jsDocTypeDef.getName() + "\n");
             for (String property : jsDocTypeDef.getProperties()) {
