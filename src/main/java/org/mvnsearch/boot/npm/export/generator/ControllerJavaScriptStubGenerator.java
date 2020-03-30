@@ -3,9 +3,14 @@ package org.mvnsearch.boot.npm.export.generator;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.intellij.lang.annotations.Language;
+import org.jetbrains.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
+import org.springframework.core.annotation.MergedAnnotation;
+import org.springframework.core.annotation.MergedAnnotations;
+import org.springframework.core.annotation.RepeatableContainers;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.*;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
@@ -121,7 +126,11 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         StringBuilder builder = new StringBuilder();
         builder.append(global);
         String version = new SimpleDateFormat("yyyy.MM.dd").format(new Date());
-        builder.append(classDeclare.replaceAll("XxxxController", jsClassName).replace("$version", version));
+        String newClassDeclare = classDeclare
+                .replaceAll("XxxxController", jsClassName)
+                .replace("$version", version)
+                .replace("http://localhost:8080", baseUrl);
+        builder.append(newClassDeclare);
         for (JsHttpStubMethod jsHttpStubMethod : jsHttpStubMethods) {
             builder.append(toJsCode(jsHttpStubMethod, "    ") + "\n");
         }
@@ -144,19 +153,11 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         if (operation != null) {
             stubMethod.setDescription(operation.description());
         }
-        //@GetMapping, @PostMapping, @RequestMapping
-        GetMapping getMapping = method.getAnnotation(GetMapping.class);
-        PostMapping postMapping = method.getAnnotation(PostMapping.class);
-        RequestMapping requestMapping = method.getAnnotation(RequestMapping.class);
         String[] paths = null;
         RequestMethod requestMethod = null;
-        if (getMapping != null) {
-            paths = getMapping.value();
-            requestMethod = RequestMethod.GET;
-        } else if (postMapping != null) {
-            paths = postMapping.value();
-            requestMethod = RequestMethod.POST;
-        } else if (requestMapping != null) {
+        //@RequestMapping
+        RequestMapping requestMapping = findAnnotationWithAttributesMerged(method, RequestMapping.class);
+        if (requestMapping != null) {
             paths = requestMapping.value();
             RequestMethod[] requestMethods = requestMapping.method();
             if (requestMethods.length > 0) {
@@ -217,7 +218,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
                     }
                     jsParam.setRequired(requestBody.required());
                     //parameter schema
-                    Schema schema = parameter.getAnnotation(Schema.class);
+                    Schema schema = findAnnotationWithAttributesMerged(parameter, Schema.class);
                     if (schema != null) {
                         //java class as response
                         if (schema.implementation() != Void.class) {
@@ -238,7 +239,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         Type genericReturnType = method.getGenericReturnType();
         stubMethod.setReturnType(parseInferredClass(genericReturnType));
         //@Schema
-        Schema schema = method.getAnnotation(Schema.class);
+        Schema schema = findAnnotationWithAttributesMerged(method, Schema.class);
         if (schema != null) {
             //java class as response
             if (schema.implementation() != Void.class) {
@@ -415,6 +416,17 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
             builder.append("*/\n");
         }
         return builder.toString();
+    }
+
+    @Nullable
+    public static <A extends Annotation> A findAnnotationWithAttributesMerged(AnnotatedElement element, Class<A> annotationType) {
+        A annotation = AnnotationUtils.findAnnotation(element, annotationType);
+        if (annotation != null) {
+            annotation = MergedAnnotations.from(element, MergedAnnotations.SearchStrategy.INHERITED_ANNOTATIONS, RepeatableContainers.none())
+                    .get(annotationType)
+                    .synthesize(MergedAnnotation::isPresent).orElse(null);
+        }
+        return annotation;
     }
 
 }
