@@ -17,7 +17,7 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
     private RequestMethod method;
     private List<JsParam> params = new ArrayList<>();
     private Class<?> returnType;
-    private boolean resultNullable;
+    private boolean resultNullable = false;
     private JSDocTypeDef jsDocTypeDef;
     private Class<?> bodyClass;
     private String requestContentType;
