@@ -2,6 +2,8 @@ package org.mvnsearch.boot.npm.export.generator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -153,9 +155,24 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         if (operation != null) {
             stubMethod.setDescription(operation.description());
         }
+        //@ApiResponse and @ApiResponses from OpenAPI
+        List<ApiResponse> allApiResponse = new ArrayList<>();
+        ApiResponse[] apiResponseArray = method.getAnnotationsByType(ApiResponse.class);
+        if (apiResponseArray != null && apiResponseArray.length > 0) {
+            Collections.addAll(allApiResponse, apiResponseArray);
+        }
+        ApiResponses apiResponses = method.getAnnotation(ApiResponses.class);
+        if (apiResponses != null && apiResponses.value().length > 0) {
+            Collections.addAll(allApiResponse, apiResponses.value());
+        }
+        for (ApiResponse apiResponse : allApiResponse) {
+            if (apiResponse.responseCode().equals("404")) {
+                stubMethod.setResultNullable(true);
+            }
+        }
+        //@RequestMapping
         String[] paths = null;
         RequestMethod requestMethod = null;
-        //@RequestMapping
         RequestMapping requestMapping = findAnnotationWithAttributesMerged(method, RequestMapping.class);
         if (requestMapping != null) {
             paths = requestMapping.value();
@@ -309,6 +326,9 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         String jsReturnType = stubMethod.getJsReturnType();
         if (stubMethod.getJsDocTypeDef() == null && jsReturnType.contains("_")) {
             this.javaBeanTypeDefMap.put(stubMethod.getReturnType(), jsReturnType);
+        }
+        if (stubMethod.isResultNullable()) {
+            jsReturnType = "(" + jsReturnType + "|null)";
         }
         builder.append(indent).append("* @return {Promise<" + jsReturnType + ">}\n");
         builder.append(indent).append("*/\n");
