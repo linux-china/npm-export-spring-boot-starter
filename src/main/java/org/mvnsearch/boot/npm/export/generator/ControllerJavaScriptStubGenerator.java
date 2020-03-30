@@ -2,8 +2,6 @@ package org.mvnsearch.boot.npm.export.generator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.intellij.lang.annotations.Language;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.core.annotation.AnnotationUtils;
@@ -155,18 +153,10 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         if (operation != null) {
             stubMethod.setDescription(operation.description());
         }
-        //@ApiResponse and @ApiResponses from OpenAPI
-        List<ApiResponse> allApiResponse = new ArrayList<>();
-        ApiResponse[] apiResponseArray = method.getAnnotationsByType(ApiResponse.class);
-        if (apiResponseArray != null && apiResponseArray.length > 0) {
-            Collections.addAll(allApiResponse, apiResponseArray);
-        }
-        ApiResponses apiResponses = method.getAnnotation(ApiResponses.class);
-        if (apiResponses != null && apiResponses.value().length > 0) {
-            Collections.addAll(allApiResponse, apiResponses.value());
-        }
-        for (ApiResponse apiResponse : allApiResponse) {
-            if (apiResponse.responseCode().equals("404")) {
+        //@Nullable
+        Annotation[] annotations = method.getAnnotations();
+        for (Annotation annotation : annotations) {
+            if (annotation.getClass().getSimpleName().equals("Nullable")) {
                 stubMethod.setResultNullable(true);
             }
         }
@@ -372,11 +362,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
                 || returnType.isAssignableFrom(double.class)) {
             builder.append(indent).append("  return axios(config).then(response => {return parseFloat(response.data);});\n");
         } else {
-            if (stubMethod.isResultNullable()) {
-                builder.append(indent).append("  return axios(config).then(response => {if (response.status === 404) {return null;} return response.data;});\n");
-            } else {
-                builder.append(indent).append("  return axios(config).then(response => {return response.data;});\n");
-            }
+            builder.append(indent).append("  return axios(config).then(response => {return response.data;});\n");
         }
         builder.append(indent).append("}\n");
         return builder.toString();
