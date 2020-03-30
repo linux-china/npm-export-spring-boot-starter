@@ -25,7 +25,7 @@ public class ControllerJavaScriptStubGeneratorTest {
 
     @Test
     public void testGenerateJsModule() throws Exception {
-        String jsCode = generator.generate("http://localhost:8080");
+        String jsCode = generator.generate("http://127.0.0.1:8080");
         FileOutputStream fos = new FileOutputStream(new File("src/test/nodejs/demo/UserController.js"));
         IOUtils.copy(new ByteArrayInputStream(jsCode.getBytes(StandardCharsets.UTF_8)), fos);
         fos.close();
@@ -41,7 +41,7 @@ public class ControllerJavaScriptStubGeneratorTest {
 
     @Test
     public void testOutputJsCode() throws Exception {
-        Method method = UserController.class.getMethod("findNickById", Integer.class);
+        Method method = UserController.class.getMethod("findNickById2", Integer.class);
         JsHttpStubMethod jsMethod = generator.generateMethodStub(method);
         System.out.println(generator.toJsCode(jsMethod, "  "));
     }
