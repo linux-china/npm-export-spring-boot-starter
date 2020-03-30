@@ -2,7 +2,6 @@ package org.mvnsearch.boot.npm.export.generator;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.intellij.lang.annotations.Language;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.web.bind.annotation.*;
@@ -213,6 +212,20 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
                         stubMethod.setRequestContentType("application/json");
                     }
                     jsParam.setRequired(requestBody.required());
+                    //parameter schema
+                    Schema schema = parameter.getAnnotation(Schema.class);
+                    if (schema != null) {
+                        //java class as response
+                        if (schema.implementation() != Void.class) {
+                            jsParam.setType(schema.implementation());
+                        } else if (schema.requiredProperties().length > 0) {
+                            JSDocTypeDef jsDocTypeDef = new JSDocTypeDef(schema.name());
+                            for (String property : schema.requiredProperties()) {
+                                jsDocTypeDef.addProperty(property);
+                            }
+                            jsParam.setJsDocTypeDef(jsDocTypeDef);
+                        }
+                    }
                 }
                 stubMethod.addParam(jsParam);
             }
@@ -220,10 +233,9 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         //return type
         Type genericReturnType = method.getGenericReturnType();
         stubMethod.setReturnType(parseInferredClass(genericReturnType));
-        //@ApiResponse
-        ApiResponse apiResponse = method.getAnnotation(ApiResponse.class);
-        if (apiResponse != null && apiResponse.content().length > 0) {
-            Schema schema = apiResponse.content()[0].schema();
+        //@Schema
+        Schema schema = method.getAnnotation(Schema.class);
+        if (schema != null) {
             //java class as response
             if (schema.implementation() != Void.class) {
                 stubMethod.setReturnType(schema.implementation());
