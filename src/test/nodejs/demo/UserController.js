@@ -21,7 +21,7 @@ function formatUri(uri, pathVariables) {
 }
 
 /**
- * @version 2020.03.29
+ * @version 2020.03.30
  */
 class UserController {
     constructor() {
@@ -63,183 +63,152 @@ class UserController {
     }
 
     /**
-     *
-     * @param {org_mvnsearch_boot_npm_export_demo_User} user
-     * @return {Promise<number>}
-     */
+    *
+    * @param {org_mvnsearch_boot_npm_export_demo_User} user
+    * @return {Promise<number>}
+    */
     save(user) {
-        let config = {
-            url: this.baseUrl + '/user/save',
-            headers: {"Content-Type": "application/json"},
-            data: user,
-            method: 'post'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return parseInt(response.data);
-        });
+      let config = {
+        url: this.baseUrl + '/user/save',
+        headers: {"Content-Type": "application/json"},
+         data: user,
+        method: 'post'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return parseInt(response.data);});
     }
 
     /**
-     *
-     * @param {number} id
-     * @return {Promise<string>}
-     */
+    *
+    * @param {number} id
+    * @return {Promise<string>}
+    */
     findNickById2(id) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/nick/2/{id}', {"id": id}),
-            headers: {},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/nick/2/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
     /**
-     * find nick by id
-     * @param {number} id
-     * @return {Promise<string>}
-     */
+    * find nick by id
+    * @param {number} id
+    * @return {Promise<string>}
+    */
     findNickById(id) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/nick/{id}', {"id": id}),
-            headers: {},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/nick/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
     /**
-     *
-     * @param {number} id
-     * @return {Promise<org_mvnsearch_boot_npm_export_demo_User>}
-     */
+    *
+    * @param {number} id
+    * @return {Promise<org_mvnsearch_boot_npm_export_demo_User>}
+    */
     findUserById(id) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/{id}', {"id": id}),
-            headers: {},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
     /**
-     *
-     * @param {number} id
-     * @param {string} [nick]
-     * @return {Promise<string>}
-     */
+    *
+    * @param {number} id
+    * @param {string} [nick]
+    * @return {Promise<string>}
+    */
     findEmailByIdAndNick(id, nick) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/email/{id}', {"id": id}),
-            headers: {},
-            params: {"nick": nick},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/email/{id}',{"id": id}),
+        headers: {},
+        params: {"nick": nick},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
     /**
-     *
-     * @deprecated
-     * @param {number} id
-     * @return {Promise<string>}
-     */
+    *
+    * @deprecated
+    * @param {number} id
+    * @return {Promise<string>}
+    */
     findEmailById(id) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/email2/{id}', {"id": id}),
-            headers: {},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/email2/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
     /**
-     *
-     * @param {number} id
-     * @return {Promise<UserExtra>}
-     */
+    *
+    * @param {number} id
+    * @return {Promise<UserExtra>}
+    */
     findUserByIdSchemaRaw(id) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/user/schemaRaw/{id}', {"id": id}),
-            headers: {},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/user/schemaRaw/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
     /**
-     *
-     * @param {number} id
-     * @return {Promise<org_mvnsearch_boot_npm_export_demo_User>}
-     */
+    *
+    * @param {number} id
+    * @return {Promise<org_mvnsearch_boot_npm_export_demo_User>}
+    */
     findUserByIdSchemaBean(id) {
-        let config = {
-            url: this.baseUrl + formatUri('/user/user/schemaBean/{id}', {"id": id}),
-            headers: {},
-            method: 'get'
-        };
-        if (this.jwtToken != null) {
-            config.headers['Authorization'] = 'Bearer ' + this.jwtToken;
-        }
-        if (this.configFilter != null) {
-            config = this.configFilter(config);
-        }
-        return axios(config).then(response => {
-            return response.data;
-        });
+      let config = {
+        url: this.baseUrl + formatUri('/user/user/schemaBean/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
+    }
+
+    /**
+    *
+    * @param {FeedPost} content
+    * @return {Promise<number>}
+    */
+    postFeed(content) {
+      let config = {
+        url: this.baseUrl + '/user/user/feed/post',
+        headers: {"Content-Type": "application/octet-stream"},
+         data: content,
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
     }
 
 }
@@ -248,13 +217,18 @@ module.exports = new UserController();
 
 //================ JSDoc typedef ========================//
 /**
- * @typedef {Object} org_mvnsearch_boot_npm_export_demo_User
- * @property {number} id
- * @property {string} nick
- * @property {string} birthDate
- */
+* @typedef {Object} org_mvnsearch_boot_npm_export_demo_User
+* @property {number} id
+* @property {string} nick
+* @property {string} birthDate
+*/
 /**
- * @typedef {Object} UserExtra
- * @property {boolean} first
- * @property {boolean} second
- */
+* @typedef {Object} FeedPost
+* @property {string} title
+* @property {string} content
+*/
+/**
+* @typedef {Object} UserExtra
+* @property {boolean} first
+* @property {boolean} second
+*/

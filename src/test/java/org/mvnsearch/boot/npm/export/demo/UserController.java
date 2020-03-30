@@ -1,11 +1,9 @@
 package org.mvnsearch.boot.npm.export.demo;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import org.mvnsearch.boot.npm.export.NpmPackage;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.ByteBuffer;
@@ -18,13 +16,12 @@ import java.util.Date;
  */
 @RestController
 @RequestMapping("/user")
-@NpmPackage(name = "@xxx/UserController")
 @CrossOrigin("*")
 public class UserController {
 
     @GetMapping("/nick/{id}")
     @Operation(description = "find nick by id")
-    public Mono<String> findNickById(@PathVariable("id") Integer id) {
+    public Mono<String> findNickById(@PathVariable("id") Integer id, ServerWebExchange exchange) {
         return Mono.just("nick: " + 1);
     }
 
@@ -56,15 +53,19 @@ public class UserController {
     }
 
     @GetMapping("/user/schemaRaw/{id}")
-    @ApiResponse(content = @Content(schema = @Schema(name = "UserExtra", requiredProperties = {"{boolean} first", "{boolean} second"})))
+    @Schema(name = "UserExtra", requiredProperties = {"{boolean} first", "{boolean} second"})
     public Mono<ByteBuffer> findUserByIdSchemaRaw(@PathVariable("id") Integer id) {
         return Mono.empty();
     }
 
     @GetMapping("/user/schemaBean/{id}")
-    @ApiResponse(content = @Content(schema = @Schema(implementation = User.class)))
+    @Schema(implementation = User.class)
     public Mono<ByteBuffer> findUserByIdSchemaBean(@PathVariable("id") Integer id) {
         return Mono.empty();
     }
 
+    @GetMapping("/user/feed/post")
+    public Mono<Long> postFeed(@Schema(name = "FeedPost", requiredProperties = {"{string} title", "{string} content"}) @RequestBody byte[] content) {
+        return Mono.empty();
+    }
 }
