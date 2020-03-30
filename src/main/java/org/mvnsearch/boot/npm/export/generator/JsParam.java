@@ -8,6 +8,7 @@ package org.mvnsearch.boot.npm.export.generator;
 public class JsParam implements JavaToJsTypeConverter {
     private String name;
     private Class<?> type;
+    private JSDocTypeDef jsDocTypeDef;
     private String defaultValue;
     private boolean required;
     private String pathVariableName;
@@ -39,6 +40,14 @@ public class JsParam implements JavaToJsTypeConverter {
         this.type = type;
     }
 
+    public JSDocTypeDef getJsDocTypeDef() {
+        return jsDocTypeDef;
+    }
+
+    public void setJsDocTypeDef(JSDocTypeDef jsDocTypeDef) {
+        this.jsDocTypeDef = jsDocTypeDef;
+    }
+
     public String getDefaultValue() {
         return defaultValue;
     }
@@ -56,7 +65,11 @@ public class JsParam implements JavaToJsTypeConverter {
     }
 
     public String getJsType() {
-        return toJsType(this.type);
+        if (this.jsDocTypeDef != null) {
+            return this.jsDocTypeDef.getName();
+        } else {
+            return toJsType(this.type);
+        }
     }
 
     public String getPathVariableName() {
