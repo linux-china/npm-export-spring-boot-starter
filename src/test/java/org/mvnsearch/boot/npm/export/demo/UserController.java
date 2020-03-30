@@ -2,6 +2,7 @@ package org.mvnsearch.boot.npm.export.demo;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -31,6 +32,7 @@ public class UserController {
     }
 
     @GetMapping("/nick/2/{id}")
+    @ApiResponse(responseCode = "404", description = "nick not found")
     public String findNickById2(@PathVariable("id") Integer id) {
         return "nick: " + 1;
     }
