@@ -19,10 +19,15 @@ import java.util.Date;
 @CrossOrigin("*")
 public class UserController {
 
-    @GetMapping("/nick/{id}")
+    @GetMapping(value = "/nick/{id}", produces = {"text/plain"})
     @Operation(description = "find nick by id")
     public Mono<String> findNickById(@PathVariable("id") Integer id, ServerWebExchange exchange) {
         return Mono.just("nick: " + 1);
+    }
+
+    @GetMapping(value = "/404", produces = {"text/plain"})
+    public String notFound() {
+        return "good morning";
     }
 
     @GetMapping("/nick/2/{id}")
