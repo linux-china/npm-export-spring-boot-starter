@@ -352,7 +352,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
                 || returnType.isAssignableFrom(double.class)) {
             builder.append(indent).append("  return axios(config).then(response => {return parseFloat(response.data);});\n");
         } else {
-            builder.append(indent).append("  return axios(config).then(response => {return response.data;});\n");
+            builder.append(indent).append("  return axios(config).then(response => {if (response.status === 404) {return null;} return response.data;});\n");
         }
         builder.append(indent).append("}\n");
         return builder.toString();
