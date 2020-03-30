@@ -17,6 +17,7 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
     private RequestMethod method;
     private List<JsParam> params = new ArrayList<>();
     private Class<?> returnType;
+    private boolean resultNullable;
     private JSDocTypeDef jsDocTypeDef;
     private Class<?> bodyClass;
     private String requestContentType;
@@ -80,6 +81,14 @@ public class JsHttpStubMethod implements JavaToJsTypeConverter {
         } else {
             return toJsType(this.returnType);
         }
+    }
+
+    public boolean isResultNullable() {
+        return resultNullable;
+    }
+
+    public void setResultNullable(boolean resultNullable) {
+        this.resultNullable = resultNullable;
     }
 
     public JSDocTypeDef getJsDocTypeDef() {
