@@ -80,6 +80,54 @@ class UserController {
     }
 
     /**
+    * find nick by id
+    * @param {number} id
+    * @return {Promise<string>}
+    */
+    findNickById(id) {
+      let config = {
+        url: this.baseUrl + formatUri('/user/nick/{id}',{"id": id}),
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
+    }
+
+    /**
+    *
+    * @param {FeedPost} content
+    * @return {Promise<number>}
+    */
+    postFeed(content) {
+      let config = {
+        url: this.baseUrl + '/user/user/feed/post',
+        headers: {"Content-Type": "application/octet-stream"},
+         data: content,
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
+    }
+
+    /**
+    *
+    * @return {Promise<string>}
+    */
+    notFound() {
+      let config = {
+        url: this.baseUrl + '/user/404',
+        headers: {},
+        method: 'get'
+      };
+      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
+      if (this.configFilter != null) { config = this.configFilter(config); }
+      return axios(config).then(response => {return response.data;});
+    }
+
+    /**
     *
     * @param {number} id
     * @return {Promise<org_mvnsearch_boot_npm_export_demo_User>}
@@ -164,25 +212,8 @@ class UserController {
 
     /**
     *
-    * @param {FeedPost} content
-    * @return {Promise<number>}
-    */
-    postFeed(content) {
-      let config = {
-        url: this.baseUrl + '/user/user/feed/post',
-        headers: {"Content-Type": "application/octet-stream"},
-         data: content,
-        method: 'get'
-      };
-      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
-      if (this.configFilter != null) { config = this.configFilter(config); }
-      return axios(config).then(response => {return response.data;});
-    }
-
-    /**
-    *
     * @param {number} id
-    * @return {Promise<string>}
+    * @return {Promise<(string|null)>}
     */
     findNickById2(id) {
       let config = {
@@ -192,23 +223,7 @@ class UserController {
       };
       if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
       if (this.configFilter != null) { config = this.configFilter(config); }
-      return axios(config).then(response => {return response.data;});
-    }
-
-    /**
-    * find nick by id
-    * @param {number} id
-    * @return {Promise<string>}
-    */
-    findNickById(id) {
-      let config = {
-        url: this.baseUrl + formatUri('/user/nick/{id}',{"id": id}),
-        headers: {},
-        method: 'get'
-      };
-      if (this.jwtToken != null) { config.headers['Authorization'] = 'Bearer ' + this.jwtToken; }
-      if (this.configFilter != null) { config = this.configFilter(config); }
-      return axios(config).then(response => {return response.data;});
+      return axios(config).then(response => {if (response.status === 404) {return null;} return response.data;});
     }
 
 }
