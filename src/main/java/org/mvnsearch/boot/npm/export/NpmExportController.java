@@ -45,9 +45,11 @@ public class NpmExportController {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(bos);
             TarArchiveOutputStream tgzOut = new TarArchiveOutputStream(gzOut);
+            //package.json
             PackageJsonGenerator jsonGenerator = new PackageJsonGenerator(packageName, version);
             jsonGenerator.addContext("description", "npm package to call " + controllerClassName + " REST API from " + env.getProperty("spring.application.name") + " Spring Boot App");
             addBinaryToTarGz(tgzOut, controllerClassName + "/package.json", jsonGenerator.generate().getBytes(StandardCharsets.UTF_8));
+            //index.js
             ControllerJavaScriptStubGenerator jsGenerator = new ControllerJavaScriptStubGenerator(controllerBean.getClass());
             addBinaryToTarGz(tgzOut, controllerClassName + "/index.js", jsGenerator.generate(baseUrl).getBytes(StandardCharsets.UTF_8));
             tgzOut.finish();
