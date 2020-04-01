@@ -49,11 +49,6 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
     }
 ```
 
-
-# Todo
-
-* npm ERR! code EINTEGRITY
-
 # References
 
 * axios: Promise based HTTP client for the browser and node.js https://github.com/axios/axios
