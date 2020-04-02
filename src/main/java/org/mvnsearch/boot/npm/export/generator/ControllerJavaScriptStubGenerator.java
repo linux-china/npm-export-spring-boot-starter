@@ -135,7 +135,7 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
             builder.append(toJsCode(jsHttpStubMethod, "    ") + "\n");
         }
         builder.append("}\n\n");
-        builder.append("module.exports = new UserController();\n\n");
+        builder.append("module.exports = new "+jsClassName+"();\n\n");
         builder.append(typedefs());
         return builder.toString();
     }
