@@ -8,6 +8,7 @@ import org.mvnsearch.boot.npm.export.generator.PackageJsonGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -57,6 +58,7 @@ public class NpmExportController {
             gzOut.close();
             return bos.toByteArray();
         } else {
+            exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
             return new byte[]{};
         }
     }
