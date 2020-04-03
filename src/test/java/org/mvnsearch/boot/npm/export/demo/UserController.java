@@ -3,6 +3,7 @@ package org.mvnsearch.boot.npm.export.demo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import org.mvnsearch.boot.npm.export.NpmPackage;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -18,6 +19,7 @@ import java.util.Date;
 @RestController
 @RequestMapping("/user")
 @CrossOrigin("*")
+@NpmPackage("@UserService/UserController")
 public class UserController {
 
     @GetMapping(value = "/nick/{id}", produces = {"text/plain"})
@@ -60,7 +62,7 @@ public class UserController {
     }
 
     @GetMapping("/user/schemaRaw/{id}")
-    @Schema(name = "UserExtra", requiredProperties = {"{boolean} first", "{boolean} second"})
+    @Schema(name = "UserExtra", requiredProperties = {"first: boolean", "second: boolean"})
     public Mono<ByteBuffer> findUserByIdSchemaRaw(@PathVariable("id") Integer id) {
         return Mono.empty();
     }
@@ -72,7 +74,7 @@ public class UserController {
     }
 
     @GetMapping("/user/feed/post")
-    public Mono<Long> postFeed(@Schema(name = "FeedPost", requiredProperties = {"{string} title", "{string} content"}) @RequestBody byte[] content) {
+    public Mono<Long> postFeed(@Schema(name = "FeedPost", requiredProperties = {"title: string", "content: string"}) @RequestBody byte[] content) {
         return Mono.empty();
     }
 }
