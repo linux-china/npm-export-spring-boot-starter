@@ -71,7 +71,7 @@ public class TypeScriptDeclarationGenerator extends BaseGenerator {
 
     public String typeScriptClasses() {
         StringBuilder builder = new StringBuilder();
-        builder.append("//================ JSDoc typedef ========================//\n");
+        builder.append("//================ TypeScript Class ========================//\n");
         for (Map.Entry<Class<?>, String> entry : javaBeanTypeDefMap.entrySet()) {
             Class<?> clazz = entry.getKey();
             builder.append("declare class " + entry.getValue() + " {\n");
