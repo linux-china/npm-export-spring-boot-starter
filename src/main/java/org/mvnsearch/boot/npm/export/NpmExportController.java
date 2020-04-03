@@ -19,7 +19,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * npm export Controller
@@ -39,7 +41,7 @@ public class NpmExportController {
             packageName = packageName.substring(1);
         }
         String controllerClassName = packageName.substring(packageName.lastIndexOf("/") + 1);
-        Object controllerBean = getControllerBean(controllerClassName);
+        Object controllerBean = getControllerBean(controllerClassName, packageName);
         if (controllerBean != null) {
             String uri = exchange.getRequest().getURI().toString();
             String baseUrl = uri.substring(0, uri.indexOf("/", 9));
@@ -67,19 +69,63 @@ public class NpmExportController {
         }
     }
 
-    public Object getControllerBean(String controllerClassName) {
+    public Object getControllerBean(String controllerClassName, String packageName) {
         for (String beanName : applicationContext.getBeanDefinitionNames()) {
             Object bean = applicationContext.getBean(beanName);
-            if (bean.getClass().getSimpleName().equals(controllerClassName)) {
+            Class<?> beanClass = bean.getClass();
+            NpmPackage npmPackage = beanClass.getAnnotation(NpmPackage.class);
+            if (npmPackage != null && npmPackage.version().equals(packageName)) {
+                return bean;
+            } else if (beanClass.getSimpleName().equals(controllerClassName)) {
                 return bean;
             }
         }
         return null;
     }
 
-    @GetMapping(value = "/jsmodule/{controllerName}", produces = "application/javascript")
-    public String jsModule(@PathVariable("controllerName") String controllerName) {
-        return "good";
+    @GetMapping(value = "/npm/packages", produces = "text/markdown")
+    public String npmPackages(ServerWebExchange exchange) {
+        List<String> controllers = new ArrayList<>();
+        for (String beanName : applicationContext.getBeanDefinitionNames()) {
+            Object bean = applicationContext.getBean(beanName);
+            Class<?> beanClass = bean.getClass();
+            NpmPackage npmPackage = beanClass.getAnnotation(NpmPackage.class);
+            if (npmPackage != null) {
+                controllers.add(npmPackage.value());
+            }
+        }
+        String uri = exchange.getRequest().getURI().toString();
+        String baseUrl = uri.substring(0, uri.indexOf("/", 9));
+        StringBuilder builder = new StringBuilder();
+        builder.append("# NPM Packages\n\n");
+        builder.append("```json\n");
+        builder.append("\"dependencies\": {\n");
+        for (String controller : controllers) {
+            builder.append("  \"" + controller + "\": \"" + baseUrl + "/npm/" + controller + "\",\n");
+        }
+        builder.append("}\n");
+        builder.append("```\n\n");
+        builder.append("# How to use?\n" +
+                "\n" +
+                "* Include dependency in your package.json and run \"yarn install\"\n" +
+                "\n" +
+                "```\n" +
+                " \"dependencies\": {\n" +
+                "    \"@UserService/UserController\": \"http://localhost:8080/npm/@UserService/UserController\"\n" +
+                "  }\n" +
+                "```\n" +
+                "\n" +
+                "* Call service api in your JS code:\n" +
+                "\n" +
+                "```\n" +
+                "const userController = require(\"@UserService/UserController\").setBaseUrl(\"http://localhost:8080\");\n" +
+                "\n" +
+                "(async () => {\n" +
+                "    let nick = await userController.findNickById(1);\n" +
+                "    console.log(nick);\n" +
+                "})()\n" +
+                "```");
+        return builder.toString();
     }
 
     public void addBinaryToTarGz(TarArchiveOutputStream tgzOut, String name, byte[] content) throws IOException {
