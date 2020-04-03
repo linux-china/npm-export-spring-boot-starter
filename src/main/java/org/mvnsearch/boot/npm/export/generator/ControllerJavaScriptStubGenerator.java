@@ -1,20 +1,15 @@
 package org.mvnsearch.boot.npm.export.generator;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import org.intellij.lang.annotations.Language;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.core.annotation.AnnotationUtils;
-import org.springframework.core.annotation.MergedAnnotation;
-import org.springframework.core.annotation.MergedAnnotations;
-import org.springframework.core.annotation.RepeatableContainers;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ValueConstants;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.*;
-import java.nio.ByteBuffer;
+import java.lang.reflect.Field;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -23,37 +18,10 @@ import java.util.stream.Collectors;
  * @author linux_china
  */
 @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
-public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter {
-    private final Class<?> controllerClass;
-    private final String jsClassName;
-    private final List<Method> requestMethods;
-    private final List<JsHttpStubMethod> jsHttpStubMethods;
-    /**
-     * javabean for typeDef from @Schema implementation
-     */
-    private final Map<Class<?>, String> javaBeanTypeDefMap = new HashMap<>();
-    /**
-     * customized typedef from @Schema properties
-     */
-    private Map<String, JSDocTypeDef> customizedTypeDefMap = new HashMap<>();
-    private String basePath;
+public class ControllerJavaScriptStubGenerator extends BaseGenerator {
 
     public ControllerJavaScriptStubGenerator(Class<?> controllerClass) {
-        this.controllerClass = controllerClass;
-        RequestMapping requestMapping = AnnotationUtils.findAnnotation(controllerClass, RequestMapping.class);
-        if (requestMapping != null) {
-            String[] basePaths = requestMapping.value();
-            if (basePaths.length > 0) {
-                this.basePath = basePaths[0];
-            }
-        }
-        this.requestMethods = Arrays.stream(this.controllerClass.getMethods())
-                .filter(method -> AnnotationUtils.findAnnotation(method, RequestMapping.class) != null)
-                .collect(Collectors.toList());
-        this.jsHttpStubMethods = this.requestMethods.stream()
-                .map(this::generateMethodStub)
-                .collect(Collectors.toList());
-        this.jsClassName = controllerClass.getSimpleName();
+        super(controllerClass);
     }
 
     public String generate(String baseUrl) {
@@ -135,161 +103,20 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
             builder.append(toJsCode(jsHttpStubMethod, "    ") + "\n");
         }
         builder.append("}\n\n");
-        builder.append("module.exports = new "+jsClassName+"();\n\n");
+        builder.append("module.exports = new " + jsClassName + "();\n\n");
         builder.append(typedefs());
         return builder.toString();
     }
 
-    public JsHttpStubMethod generateMethodStub(Method method) {
-        JsHttpStubMethod stubMethod = new JsHttpStubMethod();
-        stubMethod.setName(method.getName());
-        //@deprecated
-        Deprecated deprecated = method.getAnnotation(Deprecated.class);
-        if (deprecated != null) {
-            stubMethod.setDeprecated(true);
-        }
-        //@Operation from OpenAPI
-        Operation operation = method.getAnnotation(Operation.class);
-        if (operation != null) {
-            stubMethod.setDescription(operation.description());
-        }
-        //@Nullable
-        Annotation[] annotations = method.getAnnotations();
-        for (Annotation annotation : annotations) {
-            if (annotation.getClass().getSimpleName().equals("Nullable")) {
-                stubMethod.setResultNullable(true);
-            }
-        }
-        //@RequestMapping
-        String[] paths = null;
-        RequestMethod requestMethod = null;
-        RequestMapping requestMapping = findAnnotationWithAttributesMerged(method, RequestMapping.class);
-        if (requestMapping != null) {
-            paths = requestMapping.value();
-            RequestMethod[] requestMethods = requestMapping.method();
-            if (requestMethods.length > 0) {
-                requestMethod = requestMethods[0];
-            }
-        }
-        stubMethod.setMethod(requestMethod == null ? RequestMethod.POST : requestMethod);
-        if (paths != null && paths.length > 0) {
-            stubMethod.setPath(paths[0]);
-        }
-        if (basePath != null && !basePath.isEmpty()) {
-            stubMethod.setPath(basePath + stubMethod.getPath());
-        }
-        //parameters
-        Parameter[] parameters = method.getParameters();
-        if (parameters.length > 0) {
-            for (Parameter parameter : parameters) {
-                JsParam jsParam = new JsParam();
-                jsParam.setName(parameter.getName());
-                jsParam.setType(parameter.getType());
-                PathVariable pathVariable = parameter.getAnnotation(PathVariable.class);
-                if (pathVariable != null) {
-                    String value = pathVariable.value();
-                    if (value.isEmpty()) {
-                        value = jsParam.getName();
-                    }
-                    jsParam.setPathVariableName(value);
-                    jsParam.setRequired(pathVariable.required());
-                }
-                RequestParam requestParam = parameter.getAnnotation(RequestParam.class);
-                if (requestParam != null) {
-                    String value = requestParam.value();
-                    if (value.isEmpty()) {
-                        value = parameter.getName();
-                    }
-                    jsParam.setDefaultValue(requestParam.defaultValue());
-                    jsParam.setRequestParamName(value);
-                    jsParam.setRequired(requestParam.required());
-                }
-                RequestHeader requestHeader = parameter.getAnnotation(RequestHeader.class);
-                if (requestHeader != null) {
-                    String value = requestHeader.value();
-                    jsParam.setHttpHeaderName(value);
-                    jsParam.setDefaultValue(requestHeader.defaultValue());
-                    jsParam.setRequired(requestHeader.required());
-                }
-                RequestBody requestBody = parameter.getAnnotation(RequestBody.class);
-                if (requestBody != null) {
-                    jsParam.setBodyData(true);
-                    Class<?> bodyType = parameter.getType();
-                    if (bodyType.isAssignableFrom(String.class)) {
-                        stubMethod.setRequestContentType("text/plain");
-                    } else if (bodyType.isAssignableFrom(ByteBuffer.class)
-                            || bodyType.isAssignableFrom(byte[].class)) {
-                        stubMethod.setRequestContentType("application/octet-stream");
-                    } else {
-                        stubMethod.setRequestContentType("application/json");
-                    }
-                    jsParam.setRequired(requestBody.required());
-                    //parameter schema
-                    Schema schema = findAnnotationWithAttributesMerged(parameter, Schema.class);
-                    if (schema != null) {
-                        //java class as response
-                        if (schema.implementation() != Void.class) {
-                            jsParam.setType(schema.implementation());
-                        } else if (schema.requiredProperties().length > 0) {
-                            JSDocTypeDef jsDocTypeDef = new JSDocTypeDef(schema.name());
-                            for (String property : schema.requiredProperties()) {
-                                jsDocTypeDef.addProperty(property);
-                            }
-                            jsParam.setJsDocTypeDef(jsDocTypeDef);
-                        }
-                    }
-                }
-                stubMethod.addParam(jsParam);
-            }
-        }
-        //return type
-        Type genericReturnType = method.getGenericReturnType();
-        stubMethod.setReturnType(parseInferredClass(genericReturnType));
-        //@Schema
-        Schema schema = findAnnotationWithAttributesMerged(method, Schema.class);
-        if (schema != null) {
-            //java class as response
-            if (schema.implementation() != Void.class) {
-                stubMethod.setReturnType(schema.implementation());
-            } else if (schema.requiredProperties().length > 0) {
-                JSDocTypeDef jsDocTypeDef = new JSDocTypeDef(schema.name());
-                for (String property : schema.requiredProperties()) {
-                    jsDocTypeDef.addProperty(property);
-                }
-                stubMethod.setJsDocTypeDef(jsDocTypeDef);
-            }
-        }
-        return stubMethod;
-    }
-
-    public static Class<?> parseInferredClass(Type genericType) {
-        Class<?> inferredClass = null;
-        if (genericType instanceof ParameterizedType) {
-            ParameterizedType type = (ParameterizedType) genericType;
-            Type[] typeArguments = type.getActualTypeArguments();
-            if (typeArguments.length > 0) {
-                final Type typeArgument = typeArguments[0];
-                if (typeArgument instanceof ParameterizedType) {
-                    inferredClass = (Class<?>) ((ParameterizedType) typeArgument).getActualTypeArguments()[0];
-                } else {
-                    inferredClass = (Class<?>) typeArgument;
-                }
-            }
-        }
-        if (inferredClass == null && genericType instanceof Class) {
-            inferredClass = (Class<?>) genericType;
-        }
-        return inferredClass;
-    }
 
     public String toJsCode(JsHttpStubMethod stubMethod, String indent) {
         StringBuilder builder = new StringBuilder();
         builder.append(indent).append("/**\n");
         //description
         if (stubMethod.getDescription() != null && !stubMethod.getDescription().isEmpty()) {
-            builder.append(indent).append("* " + stubMethod.getDescription() + "\n");
+            builder.append(indent).append(" * " + stubMethod.getDescription() + "\n");
         } else {
-            builder.append(indent).append("*\n");
+            builder.append(indent).append(" *\n");
         }
         //@deprecated
         if (stubMethod.isDeprecated()) {
@@ -298,13 +125,13 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         for (JsParam param : stubMethod.getParams()) {
             if (param.isFromRequestSide()) {
                 if (param.isRequired()) {
-                    builder.append(indent).append("* @param {" + param.getJsType() + "} " + param.getName() + "\n");
+                    builder.append(indent).append(" * @param {" + param.getJsType() + "} " + param.getName() + "\n");
                 } else {
                     //default value
                     if (param.getDefaultValue() != null && !param.getDefaultValue().isEmpty() && !param.getDefaultValue().equals(ValueConstants.DEFAULT_NONE)) {
-                        builder.append(indent).append("* @param {" + param.getJsType() + "} [" + param.getName() + "=" + param.getDefaultValue() + "]\n");
+                        builder.append(indent).append(" * @param {" + param.getJsType() + "} [" + param.getName() + "=" + param.getDefaultValue() + "]\n");
                     } else {  //optional
-                        builder.append(indent).append("* @param {" + param.getJsType() + "} [" + param.getName() + "]\n");
+                        builder.append(indent).append(" * @param {" + param.getJsType() + "} [" + param.getName() + "]\n");
                     }
                 }
                 JSDocTypeDef jsDocTypeDef = param.getJsDocTypeDef();
@@ -320,8 +147,8 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         if (stubMethod.isResultNullable()) {
             jsReturnType = "(" + jsReturnType + "|null)";
         }
-        builder.append(indent).append("* @return {Promise<" + jsReturnType + ">}\n");
-        builder.append(indent).append("*/\n");
+        builder.append(indent).append(" * @return {Promise<" + jsReturnType + ">}\n");
+        builder.append(indent).append(" */\n");
         builder.append(indent).append(stubMethod.getName() + "(");
         if (!stubMethod.getParams().isEmpty()) {
             String paramsDeclare = stubMethod.getParams().stream()
@@ -419,24 +246,18 @@ public class ControllerJavaScriptStubGenerator implements JavaToJsTypeConverter 
         allTypeDefMap.putAll(typeDefForReturnTypeMap);
         for (JSDocTypeDef jsDocTypeDef : allTypeDefMap.values()) {
             builder.append("/**\n");
-            builder.append("* @typedef {Object} " + jsDocTypeDef.getName() + "\n");
+            builder.append(" * @typedef {Object} " + jsDocTypeDef.getName() + "\n");
             for (String property : jsDocTypeDef.getProperties()) {
-                builder.append("* @property " + property + "\n");
+                String[] parts = property.split("\\s?:\\s+", 2);
+                if (parts.length > 1) {
+                    builder.append(" * @property {" + parts[1] + "} " + parts[0] + "\n");
+                } else {
+                    builder.append(" * @property " + parts[0] + "\n");
+                }
             }
-            builder.append("*/\n");
+            builder.append(" */\n");
         }
         return builder.toString();
-    }
-
-    @Nullable
-    public static <A extends Annotation> A findAnnotationWithAttributesMerged(AnnotatedElement element, Class<A> annotationType) {
-        A annotation = AnnotationUtils.findAnnotation(element, annotationType);
-        if (annotation != null) {
-            annotation = MergedAnnotations.from(element, MergedAnnotations.SearchStrategy.INHERITED_ANNOTATIONS, RepeatableContainers.none())
-                    .get(annotationType)
-                    .synthesize(MergedAnnotation::isPresent).orElse(null);
-        }
-        return annotation;
     }
 
 }
