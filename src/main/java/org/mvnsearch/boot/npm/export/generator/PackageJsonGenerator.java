@@ -16,6 +16,7 @@ public class PackageJsonGenerator {
             "  \"name\": \"$packageName\",\n" +
             "  \"version\": \"$version\",\n" +
             "  \"main\": \"index.js\",\n" +
+            "  \"types\": \"index.d.ts\",\n" +
             "  \"description\": \"$description\",\n" +
             "  \"dependencies\": {\n" +
             "    \"axios\": \"^0.19.2\"\n" +
