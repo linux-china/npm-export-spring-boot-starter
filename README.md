@@ -5,10 +5,12 @@ A Spring Boot starter, generates npm package for Node.js and Browser to call Spr
 
 # Features
 
+* @NpmPackage("@UserService/UserController") for Spring Boot Controller
 * Generate axios stub to call remote REST API
 * JSDoc support for code completion
 * index.d.ts generation for TypeScript
 * OpenAPI support
+* Package list: http://localhost/npm/packages
 
 # How to use?
 
@@ -36,7 +38,12 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
 * @Operation
 * @ApiResponse
 
-```
+```java
+@RestController
+@RequestMapping("/user")
+@NpmPackage("@UserService/UserController")
+public class UserController {
+
     @GetMapping("/user/schemaRaw/{id}")
     @ApiResponse(content = @Content(schema = @Schema(name = "UserExtra", requiredProperties = {"first: string", "last: string"})))
     public Mono<ByteBuffer> findUserByIdSchemaRaw(@PathVariable("id") Integer id) {
@@ -48,6 +55,7 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
     public Mono<ByteBuffer> findUserByIdSchemaBean(@PathVariable("id") Integer id) {
         return Mono.empty();
     }
+}
 ```
 
 # References
