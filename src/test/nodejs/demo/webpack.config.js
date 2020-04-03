@@ -4,7 +4,18 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 module.exports = {
     mode: "development",
-    entry: './index.js',
+    entry: './demo.ts',
+    //please change to browser if run in browser
+    target: "node",
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                use: 'ts-loader',
+                exclude: /node_modules/,
+            },
+        ],
+    },
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: 'app.bundle.js'
