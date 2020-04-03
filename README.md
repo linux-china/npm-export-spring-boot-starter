@@ -7,6 +7,7 @@ A Spring Boot starter, generates npm package for Node.js and Browser to call Spr
 
 * Generate axios stub to call remote REST API
 * JSDoc support for code completion
+* index.d.ts generation for TypeScript
 * OpenAPI support
 
 # How to use?
