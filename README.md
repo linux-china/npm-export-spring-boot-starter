@@ -37,7 +37,7 @@ const userController = require("@UserService/UserController").setBaseUrl("http:/
 
 ```
     @GetMapping("/user/schemaRaw/{id}")
-    @ApiResponse(content = @Content(schema = @Schema(name = "UserExtra", requiredProperties = {"{boolean} first", "{boolean} second"})))
+    @ApiResponse(content = @Content(schema = @Schema(name = "UserExtra", requiredProperties = {"first: string", "last: string"})))
     public Mono<ByteBuffer> findUserByIdSchemaRaw(@PathVariable("id") Integer id) {
         return Mono.empty();
     }
