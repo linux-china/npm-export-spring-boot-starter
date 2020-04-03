@@ -38,6 +38,16 @@ public interface JavaToJsTypeConverter {
         }
     }
 
+    default String toTsType(Class<?> type) {
+        String jsType = toJsType(type);
+        if (jsType.equals("Object")) {
+            return "any";
+        } else if (jsType.equals("Array")) {
+            return "Array<any>";
+        }
+        return jsType;
+    }
+
     default String toTypeDef(Class<?> clazz) {
         StringBuilder builder = new StringBuilder();
         builder.append("/**\n");
