@@ -4,7 +4,14 @@ const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 
 module.exports = {
     mode: "development",
-    entry: './demo.ts',
+    entry: {
+        index: './index.js',
+        indexTs: './index2.ts'
+    },
+    output: {
+        filename: '[name]-bundle.js',
+        path: path.resolve(__dirname, 'dist')
+    },
     //please change to browser if run in browser
     target: "node",
     module: {
@@ -15,10 +22,6 @@ module.exports = {
                 exclude: /node_modules/,
             },
         ],
-    },
-    output: {
-        path: path.resolve(__dirname, 'dist'),
-        filename: 'app.bundle.js'
     },
     plugins: [
         new CleanWebpackPlugin(),
