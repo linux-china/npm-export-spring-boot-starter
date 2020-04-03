@@ -5,6 +5,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.mvnsearch.boot.npm.export.generator.ControllerJavaScriptStubGenerator;
 import org.mvnsearch.boot.npm.export.generator.PackageJsonGenerator;
+import org.mvnsearch.boot.npm.export.generator.TypeScriptDeclarationGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
@@ -53,6 +54,9 @@ public class NpmExportController {
             //index.js
             ControllerJavaScriptStubGenerator jsGenerator = new ControllerJavaScriptStubGenerator(controllerBean.getClass());
             addBinaryToTarGz(tgzOut, controllerClassName + "/index.js", jsGenerator.generate(baseUrl).getBytes(StandardCharsets.UTF_8));
+            //index.d.ts
+            TypeScriptDeclarationGenerator tsGenerator = new TypeScriptDeclarationGenerator(controllerBean.getClass());
+            addBinaryToTarGz(tgzOut, controllerClassName + "/index.d.ts", tsGenerator.generate().getBytes(StandardCharsets.UTF_8));
             tgzOut.finish();
             tgzOut.close();
             gzOut.close();
