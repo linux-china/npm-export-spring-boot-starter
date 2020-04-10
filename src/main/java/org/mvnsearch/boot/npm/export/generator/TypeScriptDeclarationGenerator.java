@@ -20,7 +20,7 @@ public class TypeScriptDeclarationGenerator extends BaseGenerator {
     }
 
     public String generate() {
-        @Language("TypeScript")
+        @Language(value = "TypeScript", suffix = "}")
         String global =
                 "declare interface XxxxController {\n" +
                         "    /**\n" +
