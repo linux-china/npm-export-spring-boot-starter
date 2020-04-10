@@ -48,6 +48,12 @@ public class TypeScriptDeclarationGenerator extends BaseGenerator {
         builder.append("}\n\n");
         builder.append("declare const controller: " + jsClassName + ";\n" +
                 "export default controller;\n\n");
+        String functionsExport = "export function setBaseUrl(url: string): XxxxController;\n" +
+                "\n" +
+                "export function setJwtToken(token: string): XxxxController;\n" +
+                "\n" +
+                "export function setConfigFilter(filter: (config: Object) => Object): XxxxController;\n\n";
+        builder.append(functionsExport.replaceAll("XxxxController", jsClassName));
         builder.append(typeScriptClasses());
         return builder.toString();
     }
