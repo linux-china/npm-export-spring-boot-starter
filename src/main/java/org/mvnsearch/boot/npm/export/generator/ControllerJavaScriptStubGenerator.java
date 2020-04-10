@@ -61,6 +61,13 @@ public class ControllerJavaScriptStubGenerator extends BaseGenerator {
                 "            this.baseUrl = 'http://localhost:8080'\n" +
                 "        }\n" +
                 "    }\n" +
+                "    /**\n" +
+                "     * default for TypeScript\n" +
+                "     * @returns {XxxxController}\n" +
+                "     */\n" +
+                "    get default() {\n" +
+                "        return this;\n" +
+                "    }\n" +
                 "\n" +
                 "    /**\n" +
                 "     * set base url\n" +
