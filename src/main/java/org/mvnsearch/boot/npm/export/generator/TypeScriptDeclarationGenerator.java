@@ -1,5 +1,7 @@
 package org.mvnsearch.boot.npm.export.generator;
 
+import org.intellij.lang.annotations.Language;
+
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,35 +20,41 @@ public class TypeScriptDeclarationGenerator extends BaseGenerator {
     }
 
     public String generate() {
-        String global = "/**\n" +
-                " * set base url, such as http://localhost:8080\n" +
-                " * @param url http url\n" +
-                " */\n" +
-                "export function setBaseUrl(url: string): void;\n" +
-                "\n" +
-                "/**\n" +
-                " * set JWT token\n" +
-                " * @param token  JWT token\n" +
-                " */\n" +
-                "export function setJwtToken(token: string): void;\n" +
-                "\n" +
-                "/**\n" +
-                " * set axios config object filter\n" +
-                " * @param filter  axios config object\n" +
-                " */\n" +
-                "export function setConfigFilter(filter: (config: Object) => Object): void;\n\n";
+        @Language("TypeScript")
+        String global =
+                "declare interface XxxxController {\n" +
+                        "    /**\n" +
+                        "     * set base url, such as http://localhost:8080\n" +
+                        "     * @param url http url\n" +
+                        "     */\n" +
+                        "    setBaseUrl(url: string): XxxxController;\n" +
+                        "\n" +
+                        "    /**\n" +
+                        "     * set JWT token\n" +
+                        "     * @param token  JWT token\n" +
+                        "     */\n" +
+                        "    setJwtToken(token: string): XxxxController;\n" +
+                        "\n" +
+                        "    /**\n" +
+                        "     * set axios config object filter\n" +
+                        "     * @param filter  axios config object\n" +
+                        "     */\n" +
+                        "    setConfigFilter(filter: (config: Object) => Object): XxxxController;\n\n";
         StringBuilder builder = new StringBuilder();
-        builder.append(global);
+        builder.append(global.replaceAll("XxxxController", jsClassName));
         for (JsHttpStubMethod stubMethod : jsHttpStubMethods) {
             builder.append(toTypeScriptDeclarationMethod(stubMethod) + "\n\n");
         }
+        builder.append("}\n\n");
+        builder.append("declare const controller: " + jsClassName + ";\n" +
+                "export default controller;\n\n");
         builder.append(typeScriptClasses());
         return builder.toString();
     }
 
     public String toTypeScriptDeclarationMethod(JsHttpStubMethod stubMethod) {
         StringBuilder builder = new StringBuilder();
-        builder.append("export function " + stubMethod.getName() + "(");
+        builder.append("    " + stubMethod.getName() + "(");
         if (!stubMethod.getParams().isEmpty()) {
             String paramsDeclare = stubMethod.getParams().stream()
                     .filter(JsParam::isFromRequestSide)
