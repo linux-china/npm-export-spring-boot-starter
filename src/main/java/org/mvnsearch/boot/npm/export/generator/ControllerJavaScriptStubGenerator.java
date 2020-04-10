@@ -62,14 +62,6 @@ public class ControllerJavaScriptStubGenerator extends BaseGenerator {
                 "        }\n" +
                 "    }\n" +
                 "    /**\n" +
-                "     * default for TypeScript\n" +
-                "     * @returns {XxxxController}\n" +
-                "     */\n" +
-                "    get default() {\n" +
-                "        return this;\n" +
-                "    }\n" +
-                "\n" +
-                "    /**\n" +
                 "     * set base url\n" +
                 "     * @param baseUrl base url\n" +
                 "     * @returns {XxxxController}\n" +
