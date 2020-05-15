@@ -58,6 +58,16 @@ public class UserController {
 }
 ```
 
+# Deno Integration
+
+If you use Deno to run TypeScript, please use following code:
+
+```typescript
+import  {userController } from "http://localhost:8080/deno/UserService/mod.ts"
+
+let nick = await userController.findNickById(1)
+```
+
 # References
 
 * axios: Promise based HTTP client for the browser and node.js https://github.com/axios/axios
