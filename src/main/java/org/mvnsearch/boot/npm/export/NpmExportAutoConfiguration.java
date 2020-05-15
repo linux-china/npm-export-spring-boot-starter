@@ -15,4 +15,9 @@ public class NpmExportAutoConfiguration {
     public NpmExportController npmExportController() {
         return new NpmExportController();
     }
+
+    @Bean
+    public DenoExportController denoExportController() {
+        return new DenoExportController();
+    }
 }
