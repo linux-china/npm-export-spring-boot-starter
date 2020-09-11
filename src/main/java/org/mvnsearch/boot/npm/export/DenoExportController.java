@@ -1,8 +1,10 @@
 package org.mvnsearch.boot.npm.export;
 
+import org.mvnsearch.boot.npm.export.generator.DenoModGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,24 +21,34 @@ import java.io.IOException;
 @Controller
 public class DenoExportController {
     @Autowired
-    private ApplicationContext applicationContext;
+    protected ApplicationContext applicationContext;
+
     @Autowired
     private Environment env;
 
-    @GetMapping(value = "/deno/{packageName}/mod.ts", produces = {"text/x.typescript"})
+    @GetMapping(value = "/deno/{controllerClassName}/mod.ts", produces = {"text/x.typescript"})
     @ResponseBody
-    public String denoModule(@PathVariable("packageName") String packageName, ServerWebExchange exchange) throws IOException {
+    public String denoModule(@PathVariable("controllerClassName") String controllerClassName, ServerWebExchange exchange) throws IOException {
         String uri = exchange.getRequest().getURI().toString();
         String baseUrl = uri.substring(0, uri.indexOf("/", 9));
-        return "export function hello() {}";
+        Object controllerBean = getControllerBean(controllerClassName);
+        if (controllerBean != null) {
+            DenoModGenerator denoModGenerator = new DenoModGenerator(controllerBean.getClass(), baseUrl);
+            return denoModGenerator.generate();
+        }
+        exchange.getResponse().setStatusCode(HttpStatus.NOT_FOUND);
+        return null;
     }
 
-    @GetMapping(value = "/deno/{packageName}/mod.d.ts", produces = {"text/x.typescript"})
-    @ResponseBody
-    public String denoModuleDeclare(@PathVariable("packageName") String packageName, ServerWebExchange exchange) throws IOException {
-        String uri = exchange.getRequest().getURI().toString();
-        String baseUrl = uri.substring(0, uri.indexOf("/", 9));
-        return "declare function hello()";
+    public Object getControllerBean(String controllerClassName) {
+        for (String beanName : applicationContext.getBeanDefinitionNames()) {
+            Object bean = applicationContext.getBean(beanName);
+            Class<?> beanClass = bean.getClass();
+            if (beanClass.getSimpleName().equals(controllerClassName)) {
+                return bean;
+            }
+        }
+        return null;
     }
 
 }
