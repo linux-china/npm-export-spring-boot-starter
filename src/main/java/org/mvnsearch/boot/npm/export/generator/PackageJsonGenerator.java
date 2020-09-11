@@ -19,7 +19,7 @@ public class PackageJsonGenerator {
             "  \"types\": \"index.d.ts\",\n" +
             "  \"description\": \"$description\",\n" +
             "  \"dependencies\": {\n" +
-            "    \"axios\": \"^0.19.2\"\n" +
+            "    \"axios\": \"^0.20.0\"\n" +
             "  }\n" +
             "}\n";
     private Map<String, String> context = new HashMap<>();
