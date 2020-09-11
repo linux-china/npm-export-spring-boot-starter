@@ -74,3 +74,4 @@ let nick = await userController.findNickById(1)
 * Apache Commons Compress: http://commons.apache.org/proper/commons-compress/
 * JSDoc 3: https://jsdoc.app/
 * SpringDoc OpenAPI: https://springdoc.org/
+* Fetch API: https://developer.mozilla.org/zh-CN/docs/Web/API/Fetch_API/Using_Fetch
